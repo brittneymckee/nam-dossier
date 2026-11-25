@@ -16,12 +16,17 @@ verified: false
 # ---- provenance of this answer key ----------------------------------------------
 
 source:
-  label_source: TODO          # e.g. DailyMed, FDA label, or for a withdrawn drug, say what you used
-  label_url: TODO
-  label_version_or_date: TODO # the revision date printed on the label you read
-  retrieved: TODO             # YYYY-MM-DD you read it
-  verified_by: TODO
-  notes: TODO
+  label_source: DailyMed (amiodarone hydrochloride tablets, one ANDA generic label)
+  label_url: https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=c536e0ad-2758-4022-8242-f5e9b6aca1e2
+  label_version_or_date: "Revised 8/2023 (as shown on the DailyMed page; confirm against the page you read)"
+  retrieved: 2026-11-25
+  verified_by: TODO           # leave TODO until a person has read the full label and checked every entry below
+  notes: >-
+    DRAFT prepared by Claude from search excerpts of this label and several other
+    amiodarone labels. NOT verified. Generic labels differ in revision date and
+    possibly in section numbering (W&P numbers below came from different label
+    versions), so re-check each locator against the single label you read. Keep
+    `verified: false` until then.
 
 # ---- expected liabilities (scores recall) ---------------------------------------
 #
@@ -36,7 +41,48 @@ source:
 # `label_section` and `label_quote_or_locator` are what make this checkable later.
 # Prefer a short locator over a long quote.
 
-expected_liabilities: []
+expected_liabilities:
+  # DRAFT, unverified. Boxed-warning items weighted 1.0, W&P-only items 0.5.
+  # mechanism_basis is `unknown` throughout: the label does not state it, and
+  # assigning one is a judgement for the verifier.
+  - code: respiratory
+    weight: 1.0
+    label_section: Boxed Warning; Warnings and Precautions 5.2 (Pulmonary Toxicity)
+    label_quote_or_locator: "Boxed warning: pulmonary toxicity (hypersensitivity or interstitial/alveolar pneumonitis)"
+    mechanism_basis: unknown
+    note: Label also notes fatal cases; do not score severity.
+  - code: hepatic            # NOT IN liability_taxonomy.yaml YET: add it (or choose a code) before scoring
+    weight: 1.0
+    label_section: Boxed Warning; Warnings and Precautions 5.3 (Hepatic Injury)
+    label_quote_or_locator: "Boxed warning: hepatic toxicity; W&P 5.3 hepatic injury, transaminase monitoring"
+    mechanism_basis: unknown
+    note: Needs a hepatic code in the taxonomy.
+  - code: cv_qt_proarrhythmia
+    weight: 1.0
+    label_section: Boxed Warning; Warnings and Precautions 5.4 (Worsened Arrhythmia)
+    label_quote_or_locator: "Boxed warning: can exacerbate arrhythmias; W&P 5.4 worsened arrhythmia"
+    mechanism_basis: unknown
+    note: >-
+      Mapping "worsened arrhythmia" to cv_qt_proarrhythmia is a scope judgement under
+      the current taxonomy notes. Confirm, or split out a separate arrhythmia code.
+  - code: ocular               # NOT IN taxonomy yet
+    weight: 0.5
+    label_section: Warnings and Precautions 5.5 (Visual Impairment)
+    label_quote_or_locator: "W&P 5.5 visual impairment and loss of vision"
+    mechanism_basis: unknown
+    note: Section number seen in one label version only; confirm.
+  - code: cns_neurotoxicity
+    weight: 0.5
+    label_section: Warnings and Precautions (Neurologic Toxicity / neuropathy; section number varies by label version)
+    label_quote_or_locator: "Adverse reactions list neuropathy; W&P cross-reference to neuropathy"
+    mechanism_basis: unknown
+    note: Depends on whether the taxonomy keeps peripheral neuropathy under cns_neurotoxicity.
+  - code: dermal_phototoxicity # NOT IN taxonomy yet
+    weight: 0.5
+    label_section: Warnings and Precautions (Photosensitivity and Skin Discoloration)
+    label_quote_or_locator: "W&P photosensitivity and skin discoloration"
+    mechanism_basis: unknown
+    note: Section number seen in one label version only; confirm.
   # - code: TODO
   #   weight: 1.0
   #   label_section: TODO       # e.g. Boxed Warning, Warnings and Precautions, Nonclinical Toxicology
@@ -89,7 +135,10 @@ expected_identity:
 # label is ambiguous; findings that are species-specific; anything where a reasonable
 # dossier could go either way.
 
-unscored_notes: []
+unscored_notes:
+  - "Label versions I excerpted also appear to mention thyroid abnormalities. I did not confirm the section; add as an expected liability only after reading the label."
+  - "absent_liabilities is intentionally left empty. I have not read the Nonclinical Toxicology section, so I will not assert any absence (e.g. genotoxicity). Decide this yourself after reading it."
+  - "expected_identity is left null. PubChem/ChEMBL IDs and primary targets should be taken from the connectors or the databases, not from memory."
   # - TODO
 
 # ---- known-acceptable extra flags -----------------------------------------------
