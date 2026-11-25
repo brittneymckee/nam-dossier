@@ -21,13 +21,27 @@ Entries with `mandatory: true` appear in every dossier's `liabilities` list even
 nothing was found, so that a silent gap is visible as `no_evidence_found` or
 `not_assessed` rather than simply absent. See SKILL.md Step 5.
 
+## Stub codes
+
+`hepatic`, `ocular` and `dermal_phototoxicity` exist as stubs: the identifiers are
+settled so the harness can run, but their scope is not written yet.
+
+A code with unsettled scope does not fail loudly — it scores inconsistently, because
+two reviewers classify the same finding differently and the disagreement shows up as
+a recall or false-alarm number rather than as an error. Write the scope before you
+mark any case `verified: true`.
+
 ## TODO (owner)
 
-- [ ] Extend `liability_taxonomy.yaml` to the organ systems and mechanisms you want
-      scored. The YAML lists candidate domains as comments.
+- [ ] Write scope notes for the three stub codes above.
+- [ ] Extend `liability_taxonomy.yaml` to the remaining organ systems and mechanisms
+      you want scored. The YAML lists candidate domains as comments.
 - [ ] Decide whether carcinogenicity is its own code or part of `genotoxicity`.
 - [ ] Decide whether peripheral neuropathy is its own code or part of
       `cns_neurotoxicity`.
+- [ ] Decide whether `cv_qt_proarrhythmia` covers arrhythmia exacerbation generally
+      or only QT-interval effects. The `p02_amiodarone_af` draft maps "worsened
+      arrhythmia" to it and flags the mapping as a judgement call.
 - [ ] Optionally fill in `panel_targets`, mapping secondary-pharmacology screening
       targets to liability codes, based on the panel your testing lab runs.
 - [ ] Write the classification examples you'd want a new reviewer to read: a handful

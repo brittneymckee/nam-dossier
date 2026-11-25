@@ -53,6 +53,39 @@ liabilities:
       Mutagenicity, clastogenicity, aneugenicity.
       TODO (owner): confirm scope, and whether carcinogenicity is separate.
 
+  # ---- stubs -------------------------------------------------------------------
+  #
+  # Added so the harness stops refusing cases whose ground truth references them.
+  # The identifiers are settled; the SCOPE IS NOT. Each `notes` field is a TODO,
+  # and a code with unsettled scope will still score inconsistently, because two
+  # reviewers will classify the same finding differently. Write the scope before
+  # you mark any case verified.
+
+  - code: hepatic
+    label: Hepatic
+    mandatory: false
+    notes: >-
+      TODO (owner): define scope. Decide at least whether this covers enzyme
+      elevations and overt injury under one code or needs splitting, and where
+      cholestatic findings sit.
+
+  - code: ocular
+    label: Ocular
+    mandatory: false
+    notes: >-
+      TODO (owner): define scope. Decide whether reversible visual disturbance and
+      structural eye findings share this code.
+
+  - code: dermal_phototoxicity
+    label: Dermal / phototoxicity
+    mandatory: false
+    notes: >-
+      TODO (owner): define scope. Decide whether light-dependent reactions and
+      light-independent skin findings belong under one code; they have different
+      mechanisms and different NAMs, which argues for splitting them.
+
+  # ---- fallback ----------------------------------------------------------------
+
   - code: other
     label: Other
     mandatory: false
@@ -63,10 +96,16 @@ liabilities:
 
 # TODO (owner): add the remaining organ-system and mechanism codes you want to
 # score against. Suggested domains to consider, left for you to define and scope:
-# hepatic, renal, hematologic, immune, reproductive/developmental, carcinogenicity,
-# gastrointestinal, musculoskeletal, endocrine/metabolic, dermal/phototoxicity,
-# ocular, drug-interaction liability, cardiac contractility, valvulopathy,
-# thrombosis/bleeding.
+# renal, hematologic, immune, reproductive/developmental, carcinogenicity,
+# gastrointestinal, musculoskeletal, endocrine/metabolic, drug-interaction
+# liability, cardiac contractility, valvulopathy, thrombosis/bleeding.
+#
+# Two open scope questions that the p02_amiodarone_af draft ran into, and that
+# change what a correct answer is:
+#   - Does `cv_qt_proarrhythmia` cover arrhythmia exacerbation generally, or only
+#     QT-interval effects? If the latter, a separate arrhythmia code is needed.
+#   - Does peripheral neuropathy sit under `cns_neurotoxicity`, despite not being
+#     central, or get its own code?
 
 # TODO (owner): optional. Map safety-panel screening targets to the codes above, so
 # Step 3 of the workflow knows which panel target speaks to which liability. Decide

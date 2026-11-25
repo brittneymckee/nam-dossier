@@ -51,12 +51,12 @@ expected_liabilities:
     label_quote_or_locator: "Boxed warning: pulmonary toxicity (hypersensitivity or interstitial/alveolar pneumonitis)"
     mechanism_basis: unknown
     note: Label also notes fatal cases; do not score severity.
-  - code: hepatic            # NOT IN liability_taxonomy.yaml YET: add it (or choose a code) before scoring
+  - code: hepatic            # stub code: scope not yet written in the taxonomy
     weight: 1.0
     label_section: Boxed Warning; Warnings and Precautions 5.3 (Hepatic Injury)
     label_quote_or_locator: "Boxed warning: hepatic toxicity; W&P 5.3 hepatic injury, transaminase monitoring"
     mechanism_basis: unknown
-    note: Needs a hepatic code in the taxonomy.
+    note: Taxonomy has a hepatic stub; its scope still needs defining.
   - code: cv_qt_proarrhythmia
     weight: 1.0
     label_section: Boxed Warning; Warnings and Precautions 5.4 (Worsened Arrhythmia)
@@ -65,7 +65,7 @@ expected_liabilities:
     note: >-
       Mapping "worsened arrhythmia" to cv_qt_proarrhythmia is a scope judgement under
       the current taxonomy notes. Confirm, or split out a separate arrhythmia code.
-  - code: ocular               # NOT IN taxonomy yet
+  - code: ocular               # stub code: scope not yet written
     weight: 0.5
     label_section: Warnings and Precautions 5.5 (Visual Impairment)
     label_quote_or_locator: "W&P 5.5 visual impairment and loss of vision"
@@ -77,7 +77,7 @@ expected_liabilities:
     label_quote_or_locator: "Adverse reactions list neuropathy; W&P cross-reference to neuropathy"
     mechanism_basis: unknown
     note: Depends on whether the taxonomy keeps peripheral neuropathy under cns_neurotoxicity.
-  - code: dermal_phototoxicity # NOT IN taxonomy yet
+  - code: dermal_phototoxicity # stub code: scope not yet written
     weight: 0.5
     label_section: Warnings and Precautions (Photosensitivity and Skin Discoloration)
     label_quote_or_locator: "W&P photosensitivity and skin discoloration"
