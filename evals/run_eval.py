@@ -78,6 +78,17 @@ def is_todo(value: Any) -> bool:
     return isinstance(value, str) and value.strip().upper().startswith("TODO")
 
 
+def codes_in(truth: dict, group: str) -> set[str]:
+    """Liability codes listed under a ground-truth group, TODO markers excluded."""
+    return {
+        entry["code"]
+        for entry in (truth.get(group) or [])
+        if isinstance(entry, dict)
+        and entry.get("code")
+        and not is_todo(entry["code"])
+    }
+
+
 def pct(numerator: float, denominator: float) -> float | None:
     return None if not denominator else numerator / denominator
 
@@ -383,6 +394,7 @@ class CaseResult:
     acceptable_extra: set[str] = field(default_factory=set)
     weights: dict[str, float] = field(default_factory=dict)
     unscored_notes: list[str] = field(default_factory=list)
+    unknown_gt_codes: dict[str, list[str]] = field(default_factory=dict)
 
     recall_per_run: list[float] = field(default_factory=list)
     weighted_recall_per_run: list[float] = field(default_factory=list)
@@ -483,32 +495,50 @@ def score_case(
         result.decline_correct = bool(usable) and all(r.declined for r in usable)
         return result
 
+    # Codes are read, and checked against the taxonomy, before the `verified` gate,
+    # so a draft answer key still gets told about codes that don't exist yet.
+    result.expected_codes = codes_in(truth, "expected_liabilities")
+    result.absent_codes = codes_in(truth, "absent_liabilities")
+    result.acceptable_extra = codes_in(truth, "acceptable_extra_flags")
+    result.weights = {
+        e["code"]: float(e.get("weight", 1.0))
+        for e in (truth.get("expected_liabilities") or [])
+        if e.get("code") and not is_todo(e["code"])
+    }
+
+    if known_codes:
+        for group, codes in (
+            ("expected_liabilities", result.expected_codes),
+            ("absent_liabilities", result.absent_codes),
+            ("acceptable_extra_flags", result.acceptable_extra),
+        ):
+            unknown = sorted(codes - known_codes)
+            if unknown:
+                result.unknown_gt_codes[group] = unknown
+
     if not result.verified:
         result.skip_reason = (
             "ground truth unverified — recall and false alarms not scored"
         )
         return result
 
-    result.expected_codes = {
-        e["code"]
-        for e in (truth.get("expected_liabilities") or [])
-        if e.get("code") and not is_todo(e["code"])
+    # A verified key referencing codes outside the taxonomy cannot be scored
+    # meaningfully: an expected code no dossier can emit depresses recall with no
+    # visible cause, and an absent code that can never be flagged silently inflates
+    # precision. Refuse rather than produce the number.
+    blocking = {
+        group: codes
+        for group, codes in result.unknown_gt_codes.items()
+        if group in {"expected_liabilities", "absent_liabilities"}
     }
-    result.absent_codes = {
-        e["code"]
-        for e in (truth.get("absent_liabilities") or [])
-        if e.get("code") and not is_todo(e["code"])
-    }
-    result.acceptable_extra = {
-        e["code"]
-        for e in (truth.get("acceptable_extra_flags") or [])
-        if e.get("code") and not is_todo(e["code"])
-    }
-    result.weights = {
-        e["code"]: float(e.get("weight", 1.0))
-        for e in (truth.get("expected_liabilities") or [])
-        if e.get("code") and not is_todo(e["code"])
-    }
+    if blocking:
+        detail = "; ".join(f"{g}: {c}" for g, c in sorted(blocking.items()))
+        result.skip_reason = (
+            "ground truth references liability codes absent from "
+            f"liability_taxonomy.yaml ({detail}) — add them to the taxonomy, or "
+            "map them to existing codes, before marking this case verified"
+        )
+        return result
 
     overlap = result.expected_codes & result.absent_codes
     if overlap:
@@ -606,6 +636,16 @@ def render_report(results: list[CaseResult], meta: dict) -> str:
         )
         lines.append("")
 
+    bad_codes = [r for r in results if r.unknown_gt_codes]
+    if bad_codes:
+        lines.append(
+            f"> **{len(bad_codes)} case(s) reference liability codes that are not in "
+            "`liability_taxonomy.yaml`.** A verified case is not scored at all until "
+            "they are added or remapped, since a code no dossier can emit would "
+            "silently depress recall."
+        )
+        lines.append("")
+
     lines.append("## Per case")
     lines.append("")
     for r in results:
@@ -613,6 +653,16 @@ def render_report(results: list[CaseResult], meta: dict) -> str:
         lines.append("")
         if r.skip_reason:
             lines.append(f"- **Skipped scoring:** {r.skip_reason}")
+        if r.unknown_gt_codes:
+            lines.append(
+                "- **Ground-truth codes not in `liability_taxonomy.yaml`:**"
+            )
+            for group, codes in sorted(r.unknown_gt_codes.items()):
+                lines.append(f"  - `{group}`: {codes}")
+            lines.append(
+                "  - Add them to the taxonomy, or map them to existing codes. A code "
+                "no dossier can emit will never be matched."
+            )
         if not r.runs:
             lines.append("")
             continue
@@ -731,6 +781,7 @@ def results_to_json(results: list[CaseResult], meta: dict) -> dict:
                 "n_runs_found": len(r.runs),
                 "expected_codes": sorted(r.expected_codes),
                 "absent_codes": sorted(r.absent_codes),
+                "unknown_ground_truth_codes": r.unknown_gt_codes,
                 "recall_per_run": r.recall_per_run,
                 "mean_recall": r.mean_recall,
                 "mean_weighted_recall": r.mean_weighted_recall,

@@ -123,6 +123,11 @@ ground truth and are always scored. The harness also reports rule violations tha
 aren't metrics: guideline references not marked `needs_human_verification`, mandatory
 liabilities missing from a dossier, unknown liability codes, and schema errors.
 
+A verified case whose ground truth references liability codes absent from
+`liability_taxonomy.yaml` is not scored at all, and the report says why. Add the
+codes to the taxonomy first — otherwise an expected code no dossier can emit
+depresses recall with no visible cause.
+
 Full definitions, and notes on how to read a report, are in
 `evals/report_template.md`.
 

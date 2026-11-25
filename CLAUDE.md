@@ -86,7 +86,8 @@ unverified cases, which is intended.
 `run_eval.py` scores four things. Keep the definitions in `README.md` and in the code
 in step with each other:
 
-- **recall** of label-documented liabilities flagged as `signal`
+- **recall** of label-documented liabilities flagged as `signal`; refused outright for
+  a verified case whose codes aren't in the taxonomy, rather than scored wrongly
 - **false alarms** against each case's `absent_liabilities` (negative controls); a flag
   that is neither expected nor listed as absent is reported for human review, not
   scored

@@ -104,6 +104,12 @@ Needs no ground truth, so it is always scored.
 
 Not a score, a checklist. Flags per run:
 
+- ground-truth liability codes that are not in `liability_taxonomy.yaml`. Reported
+  for any case, verified or not. For a **verified** case, scoring is refused
+  outright: an expected code no dossier can emit would depress recall with no
+  visible cause, and an absent code that can never be flagged would silently
+  inflate precision. An unknown code in `acceptable_extra_flags` only warns, since
+  it cannot distort a metric
 - guideline references whose `verification` is anything other than
   `needs_human_verification` (hard rule 4 has no other permitted value)
 - mandatory liability codes missing from `liabilities` entirely, which hides a gap
@@ -125,6 +131,7 @@ A few combinations worth recognising:
 | High Jaccard, low confidence agreement | Stable findings, unstable grading. Look at the confidence rubric in SKILL.md Step 5. |
 | Large review pile | The ground truth is immature, not necessarily the skill. Adjudicate the pile first. |
 | Many `not_assessed` | Connectors were missing. Valid behaviour, but the run says little about skill quality. Check connector availability before reading anything else. |
+| A verified case skipped for unknown codes | The answer key is ahead of the taxonomy. Add the codes to `liability_taxonomy.yaml` first; the case will score on the next run. |
 
 ## TODO (owner)
 
