@@ -10,8 +10,8 @@ target plus indication. NAM means new approach methods: in vitro, in silico and 
 chemico methods, proposed before any animal study. Every claim in the memo is traced
 to a logged connector query.
 
-
-This project is for a Google Cloud customer engineer. None of the outputs are for commercial, clinical, or research use. I am simply building skills and projects that I can demonstrate to Life Sciences customers. Nothing that I work on is related to synthesis, it is only computational analysis. All organisms referenced are standard bioinformatics targets from peer-reviewed literature.
+This project is built by a customer engineer to demonstrate skill design to Life
+Sciences customers. None of its outputs are for commercial, clinical or research use.
 
 **Nothing here is a regulatory document, and nothing here produces one.** The skill's
 output is decision support for a qualified toxicologist. It does not replace expert
