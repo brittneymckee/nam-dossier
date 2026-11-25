@@ -1,0 +1,77 @@
+# Controlled vocabulary of liability codes.
+#
+# This file is the single source of truth. The schema, the ground-truth files and
+# run_eval.py all read codes from here, so a code only has to be added once.
+#
+# Each entry:
+#   code:      snake_case identifier used in dossier.json and ground truth
+#   label:     short human-readable name for the memo tables
+#   mandatory: true if the liability must appear in every dossier's `liabilities`
+#              list, even with status no_evidence_found or not_assessed
+#   notes:     scope of the code, so two reviewers classify the same finding alike
+#
+# TODO (owner): extend this vocabulary to the liability domains you want covered.
+# The five mandatory entries below are the ICH S7A core safety-pharmacology domains
+# plus genotoxicity, which SKILL.md Step 5 requires in every dossier. Everything
+# else a dossier might flag needs a code here, or it falls back to `other`.
+
+version: 0.1.0
+
+liabilities:
+  - code: cv_qt_proarrhythmia
+    label: QT prolongation / proarrhythmia
+    mandatory: true
+    notes: >-
+      Cardiac ion-channel effects and their electrophysiological consequences.
+      TODO (owner): confirm scope, and whether non-hERG channels get their own code.
+
+  - code: cv_hemodynamic
+    label: Hemodynamic effects
+    mandatory: true
+    notes: >-
+      Blood-pressure and heart-rate effects.
+      TODO (owner): confirm scope.
+
+  - code: cns_neurotoxicity
+    label: CNS / neurotoxicity
+    mandatory: true
+    notes: >-
+      Central and peripheral nervous system effects.
+      TODO (owner): confirm scope, and whether peripheral neuropathy is separate.
+
+  - code: respiratory
+    label: Respiratory
+    mandatory: true
+    notes: >-
+      Respiratory function and lung findings.
+      TODO (owner): confirm scope.
+
+  - code: genotoxicity
+    label: Genotoxicity
+    mandatory: true
+    notes: >-
+      Mutagenicity, clastogenicity, aneugenicity.
+      TODO (owner): confirm scope, and whether carcinogenicity is separate.
+
+  - code: other
+    label: Other
+    mandatory: false
+    notes: >-
+      Fallback only. A dossier using this code must describe the liability in
+      `mechanism_hypothesis`. Recurring uses of `other` mean this vocabulary is
+      missing a code.
+
+# TODO (owner): add the remaining organ-system and mechanism codes you want to
+# score against. Suggested domains to consider, left for you to define and scope:
+# hepatic, renal, hematologic, immune, reproductive/developmental, carcinogenicity,
+# gastrointestinal, musculoskeletal, endocrine/metabolic, dermal/phototoxicity,
+# ocular, drug-interaction liability, cardiac contractility, valvulopathy,
+# thrombosis/bleeding.
+
+# TODO (owner): optional. Map safety-panel screening targets to the codes above, so
+# Step 3 of the workflow knows which panel target speaks to which liability. Decide
+# this against the secondary-pharmacology panel your testing lab actually runs
+# rather than a generic list.
+panel_targets: []
+  # - gene: KCNH2
+  #   liability_codes: [cv_qt_proarrhythmia]

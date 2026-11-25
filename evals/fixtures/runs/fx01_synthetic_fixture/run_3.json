@@ -1,0 +1,226 @@
+{
+  "schema_version": "0.1.0",
+  "generated_at": "2026-01-01T00:00:00Z",
+  "disclaimer": "FIXTURE. Decision support only; not a safety determination.",
+  "request": {
+    "input_type": "compound",
+    "raw_input": "FIXTURE-COMPOUND-000",
+    "indication": "fixture indication",
+    "indication_ontology_id": null
+  },
+  "entity_resolution": {
+    "compounds": [
+      {
+        "name": "FIXTURE-COMPOUND-000",
+        "pubchem_cid": "FIXTURE-CID",
+        "claim_ids": [
+          "C001"
+        ]
+      }
+    ],
+    "targets": [],
+    "unresolved": []
+  },
+  "query_log": [
+    {
+      "query_id": "Q001",
+      "connector": "FIXTURE",
+      "tool": "fixture_tool",
+      "params": {
+        "fixture": true
+      },
+      "executed_at": "2026-01-01T00:00:00Z",
+      "status": "ok",
+      "n_results": 1,
+      "returned_record_ids": [
+        "FIXTURE-REC-1"
+      ]
+    },
+    {
+      "query_id": "Q002",
+      "connector": "FIXTURE",
+      "tool": "fixture_tool",
+      "params": {
+        "fixture": true
+      },
+      "executed_at": "2026-01-01T00:00:00Z",
+      "status": "ok",
+      "n_results": 1,
+      "returned_record_ids": [
+        "FIXTURE-REC-2"
+      ]
+    },
+    {
+      "query_id": "Q003",
+      "connector": "FIXTURE",
+      "tool": "fixture_tool",
+      "params": {
+        "fixture": true
+      },
+      "executed_at": "2026-01-01T00:00:00Z",
+      "status": "empty",
+      "n_results": 0,
+      "returned_record_ids": []
+    },
+    {
+      "query_id": "Q004",
+      "connector": "FIXTURE",
+      "tool": "fixture_tool",
+      "params": {
+        "fixture": true
+      },
+      "executed_at": "2026-01-01T00:00:00Z",
+      "status": "error",
+      "n_results": 0,
+      "returned_record_ids": [],
+      "error": "fixture error"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "C001",
+      "statement": "Fixture identity claim.",
+      "query_ids": [
+        "Q001"
+      ],
+      "record_ids": [
+        "FIXTURE-REC-1"
+      ],
+      "evidence_type": "identity"
+    },
+    {
+      "claim_id": "C002",
+      "statement": "Fixture activity claim with a quantity.",
+      "query_ids": [
+        "Q002"
+      ],
+      "record_ids": [
+        "FIXTURE-REC-2"
+      ],
+      "liability_code": "cv_qt_proarrhythmia",
+      "evidence_type": "measured_activity",
+      "quantities": [
+        {
+          "quantity": "fixture IC50",
+          "value_as_reported": "999",
+          "units_as_reported": "fixture-units",
+          "record_id": "FIXTURE-REC-2"
+        }
+      ]
+    },
+    {
+      "claim_id": "C003",
+      "statement": "Fixture dangling citation.",
+      "query_ids": [
+        "Q999"
+      ],
+      "record_ids": []
+    },
+    {
+      "claim_id": "C004",
+      "statement": "Fixture unbacked record.",
+      "query_ids": [
+        "Q001"
+      ],
+      "record_ids": [
+        "FIXTURE-REC-NOPE"
+      ]
+    },
+    {
+      "claim_id": "C005",
+      "statement": "Fixture empty-only support.",
+      "query_ids": [
+        "Q003",
+        "Q004"
+      ],
+      "record_ids": []
+    }
+  ],
+  "liabilities": [
+    {
+      "liability_code": "cv_qt_proarrhythmia",
+      "status": "signal",
+      "confidence": "high",
+      "claim_ids": [
+        "C002"
+      ],
+      "mechanism_basis": "off_target",
+      "mechanism_hypothesis": "Fixture hypothesis."
+    },
+    {
+      "liability_code": "genotoxicity",
+      "status": "signal",
+      "confidence": "low",
+      "claim_ids": [
+        "C002"
+      ],
+      "mechanism_basis": "chemistry",
+      "mechanism_hypothesis": "Fixture."
+    },
+    {
+      "liability_code": "cv_hemodynamic",
+      "status": "no_evidence_found",
+      "confidence": null,
+      "claim_ids": [],
+      "sources_searched": [
+        "FIXTURE"
+      ]
+    },
+    {
+      "liability_code": "cns_neurotoxicity",
+      "status": "no_evidence_found",
+      "confidence": null,
+      "claim_ids": [],
+      "sources_searched": [
+        "FIXTURE"
+      ]
+    },
+    {
+      "liability_code": "respiratory",
+      "status": "not_assessed",
+      "confidence": null,
+      "claim_ids": [],
+      "not_assessed_reason": "Fixture connector unavailable."
+    }
+  ],
+  "nam_plan": [
+    {
+      "liability_code": "cv_qt_proarrhythmia",
+      "assay": "FIXTURE assay",
+      "tier": "in_silico",
+      "decision_informed": "Fixture decision.",
+      "limits": "Fixture negative result establishes nothing.",
+      "animal_study_trigger": {
+        "trigger": "Fixture trigger.",
+        "study": null
+      },
+      "method_specified": false
+    }
+  ],
+  "open_questions": [
+    {
+      "question": "Fixture open question?"
+    }
+  ],
+  "limitations": [
+    {
+      "limitation": "Synthetic fixture; no real data."
+    }
+  ],
+  "guideline_references": [
+    {
+      "ref_id": "FIXTURE-GL-1",
+      "issuing_body": "other",
+      "designation": null,
+      "in_repo": false,
+      "verification": "needs_human_verification"
+    },
+    {
+      "ref_id": "FIXTURE-GL-2",
+      "issuing_body": "ICH",
+      "designation": "FIXTURE",
+      "in_repo": false,
+      "verification": "verified"
+    }
+  ]
+}

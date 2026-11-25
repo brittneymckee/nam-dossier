@@ -1,0 +1,33 @@
+# FIXTURE ground truth. Synthetic, asserts nothing about any real compound.
+# `verified: true` only so the smoke test exercises the recall and false-alarm paths.
+case_id: fx01_synthetic_fixture
+verified: true
+source:
+  label_source: none — synthetic fixture
+  label_url: null
+  label_version_or_date: null
+  retrieved: null
+  verified_by: fixture
+  notes: Not a real answer key.
+expected_liabilities:
+  - code: cv_qt_proarrhythmia
+    weight: 2.0
+    label_section: fixture
+    label_quote_or_locator: fixture
+  - code: genotoxicity
+    weight: 1.0
+    label_section: fixture
+    label_quote_or_locator: fixture
+absent_liabilities:
+  - code: respiratory
+    basis: fixture
+expect_decline: false
+expected_identity:
+  pubchem_cid: null
+  chembl_id: null
+  inchikey: null
+  primary_targets: []
+  ambiguity_expected: null
+unscored_notes:
+  - Synthetic fixture; numbers here mean nothing clinically.
+acceptable_extra_flags: []

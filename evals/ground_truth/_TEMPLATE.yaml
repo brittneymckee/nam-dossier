@@ -1,0 +1,103 @@
+# Ground-truth template. Copy to <case_id>.yaml and fill in.
+#
+# VERIFIED BY A PERSON, NOT BY CLAUDE. Every field below is a judgement about what a
+# current drug label says. Fill it in by reading the label — DailyMed, or the FDA
+# label for the specific application — and record which version you read, so a future
+# reader can tell whether the ground truth has gone stale.
+#
+# While `verified: false`, run_eval.py reports the case but skips recall and
+# false-alarm scoring for it. That is intentional: scoring against an unverified
+# answer key produces a number that looks like a result and isn't one. Citation
+# validity and consistency are still scored, since those need no ground truth.
+
+case_id: TODO
+verified: false
+
+# ---- provenance of this answer key ----------------------------------------------
+
+source:
+  label_source: TODO          # e.g. DailyMed, FDA label, or for a withdrawn drug, say what you used
+  label_url: TODO
+  label_version_or_date: TODO # the revision date printed on the label you read
+  retrieved: TODO             # YYYY-MM-DD you read it
+  verified_by: TODO
+  notes: TODO
+
+# ---- expected liabilities (scores recall) ---------------------------------------
+#
+# Liabilities the label documents, that a good dossier should surface with
+# status `signal`. Codes come from
+# skills/nonclinical-safety-nam-dossier/references/liability_taxonomy.yaml.
+#
+# `weight` lets you distinguish a boxed warning from a minor mention. Recall is
+# reported both unweighted and weighted, so you can leave every weight at 1.0 and
+# ignore the weighted figure if you prefer.
+#
+# `label_section` and `label_quote_or_locator` are what make this checkable later.
+# Prefer a short locator over a long quote.
+
+expected_liabilities: []
+  # - code: TODO
+  #   weight: 1.0
+  #   label_section: TODO       # e.g. Boxed Warning, Warnings and Precautions, Nonclinical Toxicology
+  #   label_quote_or_locator: TODO
+  #   mechanism_basis: TODO     # on_target | off_target | class | chemistry | unknown
+  #   note: TODO
+
+# ---- absent liabilities (scores false alarms) -----------------------------------
+#
+# Liability codes the label does NOT carry, which a dossier therefore should not
+# report as `signal`.
+#
+# Be careful here, and be conservative. Listing a code as absent asserts something
+# about the label. An absence you are not sure about belongs in `unscored_notes`
+# instead, not here — a wrong entry turns a correct find into a scored false alarm.
+# `no_evidence_found` on one of these codes is the correct outcome, not a miss.
+
+absent_liabilities: []
+  # - code: TODO
+  #   basis: TODO              # why you are confident the label does not carry it
+  #   note: TODO
+
+# ---- scope guard ----------------------------------------------------------------
+#
+# For out_of_scope cases only: the skill should decline rather than produce a
+# degraded dossier. Scored pass/fail on the decline.
+
+expect_decline: false
+decline_reason_expected: null   # e.g. "not a small molecule"
+
+# ---- expected identity resolution -----------------------------------------------
+#
+# Optional. Lets the harness check Step 1 independently of liability scoring. Leave
+# a field null if you don't want it checked.
+
+expected_identity:
+  pubchem_cid: null
+  chembl_id: null
+  inchikey: null
+  primary_targets: []          # gene symbols
+  ambiguity_expected: null     # true if the input legitimately resolves to more than one entity
+
+# ---- things the eval must not score ---------------------------------------------
+#
+# Anything you know but can't turn into a clean scored expectation. The harness
+# prints these next to the case's results as context for a human reader, and does
+# not score them.
+#
+# Use this for: liabilities that are real but not label-documented; domains where the
+# label is ambiguous; findings that are species-specific; anything where a reasonable
+# dossier could go either way.
+
+unscored_notes: []
+  # - TODO
+
+# ---- known-acceptable extra flags -----------------------------------------------
+#
+# Liability codes that a dossier may legitimately raise for this compound even though
+# they are not in expected_liabilities. Listing a code here keeps it out of the
+# human-review pile without crediting it as recall.
+
+acceptable_extra_flags: []
+  # - code: TODO
+  #   why: TODO

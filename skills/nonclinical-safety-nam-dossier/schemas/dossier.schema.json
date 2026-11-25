@@ -1,0 +1,517 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/nonclinical-safety-nam-dossier/dossier.schema.json",
+  "title": "Nonclinical safety NAM dossier",
+  "description": "Machine-readable sidecar to memo.md. The memo and this document must agree: same claims, same IDs, same statuses. Liability codes are not constrained by an enum here; run_eval.py validates them against references/liability_taxonomy.yaml so the vocabulary lives in one place.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "disclaimer",
+    "request",
+    "entity_resolution",
+    "query_log",
+    "claims",
+    "liabilities",
+    "nam_plan",
+    "open_questions",
+    "limitations",
+    "guideline_references"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "disclaimer": {
+      "type": "string",
+      "description": "The decision-support boundary, matching the memo. Hard rule 5.",
+      "minLength": 1
+    },
+
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_type", "raw_input", "indication"],
+      "properties": {
+        "input_type": {
+          "enum": ["compound", "target", "compound_and_target"]
+        },
+        "raw_input": {
+          "type": "string",
+          "description": "What the user asked for, as given."
+        },
+        "indication": {
+          "type": "string",
+          "description": "Free text, or the literal string 'unspecified'."
+        },
+        "indication_ontology_id": {
+          "type": ["string", "null"],
+          "description": "MONDO or EFO ID, only if a query returned one."
+        },
+        "context": {
+          "type": "object",
+          "description": "Optional user-supplied context. Omit a field rather than guessing it.",
+          "additionalProperties": false,
+          "properties": {
+            "route": { "type": "string" },
+            "expected_exposure": { "type": "string" },
+            "population": { "type": "string" },
+            "duration": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "entity_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compounds", "targets", "unresolved"],
+      "properties": {
+        "compounds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "claim_ids"],
+            "properties": {
+              "name": { "type": "string" },
+              "pubchem_cid": { "type": ["string", "null"] },
+              "chembl_id": { "type": ["string", "null"] },
+              "inchikey": { "type": ["string", "null"] },
+              "smiles": { "type": ["string", "null"] },
+              "is_salt": { "type": ["boolean", "null"] },
+              "parent_of_record": { "type": ["string", "null"] },
+              "max_phase": {
+                "type": ["string", "null"],
+                "description": "As returned by the source. Not interpreted."
+              },
+              "claim_ids": { "$ref": "#/$defs/claimIdList" }
+            }
+          }
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["gene_symbol", "claim_ids"],
+            "properties": {
+              "gene_symbol": { "type": "string" },
+              "uniprot_accession": { "type": ["string", "null"] },
+              "chembl_target_id": { "type": ["string", "null"] },
+              "organism": { "type": ["string", "null"] },
+              "role": {
+                "enum": ["primary", "secondary", "off_target", "unknown"]
+              },
+              "claim_ids": { "$ref": "#/$defs/claimIdList" }
+            }
+          }
+        },
+        "unresolved": {
+          "type": "array",
+          "description": "Ambiguities left open: multiple CIDs, salt/parent mismatch, a gene symbol mapping to several proteins.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["issue"],
+            "properties": {
+              "issue": { "type": "string" },
+              "candidates": { "type": "array", "items": { "type": "string" } },
+              "query_ids": { "$ref": "#/$defs/queryIdList" }
+            }
+          }
+        }
+      }
+    },
+
+    "query_log": {
+      "type": "array",
+      "description": "One entry per connector call, including failures and empty results. Append-only within a run.",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/queryLogEntry" }
+    },
+
+    "claims": {
+      "type": "array",
+      "description": "Every factual statement in the dossier. Hard rule 1: each cites at least one query_id.",
+      "items": { "$ref": "#/$defs/claim" }
+    },
+
+    "liabilities": {
+      "type": "array",
+      "description": "One entry per liability code with any evidence, plus every code marked mandatory in liability_taxonomy.yaml.",
+      "items": { "$ref": "#/$defs/liability" }
+    },
+
+    "nam_plan": {
+      "type": "array",
+      "description": "NAM-first plan. Step 6 requires at least one item for each liability with status signal or no_evidence_found.",
+      "items": { "$ref": "#/$defs/namPlanItem" }
+    },
+
+    "open_questions": {
+      "type": "array",
+      "description": "Questions the evidence does not settle. Anything that would otherwise be an uncited claim belongs here, phrased as a question.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question"],
+        "properties": {
+          "question": { "type": "string" },
+          "liability_code": { "type": ["string", "null"] },
+          "why_open": {
+            "type": "string",
+            "description": "What was looked for and not found, or what was never queryable."
+          },
+          "query_ids": { "$ref": "#/$defs/queryIdList" }
+        }
+      }
+    },
+
+    "limitations": {
+      "type": "array",
+      "description": "Scope and coverage caveats: unavailable connectors, missing indication, filters applied, domains out of scope.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["limitation"],
+        "properties": {
+          "limitation": { "type": "string" },
+          "affected_liability_codes": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "unavailable_connector": { "type": ["string", "null"] },
+          "query_ids": { "$ref": "#/$defs/queryIdList" }
+        }
+      }
+    },
+
+    "guideline_references": {
+      "type": "array",
+      "description": "Every guideline the dossier mentions. Hard rule 4.",
+      "items": { "$ref": "#/$defs/guidelineRef" }
+    }
+  },
+
+  "$defs": {
+    "queryId": {
+      "type": "string",
+      "pattern": "^Q[0-9]{3,}$"
+    },
+    "queryIdList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/queryId" },
+      "uniqueItems": true
+    },
+    "claimId": {
+      "type": "string",
+      "pattern": "^C[0-9]{3,}$"
+    },
+    "claimIdList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/claimId" },
+      "uniqueItems": true
+    },
+
+    "status": {
+      "description": "Hard rule 2. These four are not interchangeable, and none of them means 'safe'.",
+      "oneOf": [
+        {
+          "const": "signal",
+          "title": "A query returned evidence pointing toward the risk."
+        },
+        {
+          "const": "no_evidence_found",
+          "title": "Relevant queries ran and returned nothing relevant. Says nothing about safety."
+        },
+        {
+          "const": "evidence_against_risk",
+          "title": "A query returned positive data against the risk. Requires specific record IDs."
+        },
+        {
+          "const": "not_assessed",
+          "title": "Connector unavailable, query failed, or out of scope. Nobody looked."
+        }
+      ]
+    },
+
+    "confidence": {
+      "description": "Strength of the evidence, not likelihood of harm. Null for no_evidence_found and not_assessed.",
+      "enum": ["high", "moderate", "low", null]
+    },
+
+    "queryLogEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query_id", "connector", "tool", "params", "executed_at", "status"],
+      "properties": {
+        "query_id": { "$ref": "#/$defs/queryId" },
+        "connector": { "type": "string" },
+        "tool": {
+          "type": "string",
+          "description": "The exact tool name called, not a generic name."
+        },
+        "params": {
+          "type": "object",
+          "description": "Parameters as sent, including any threshold or cutoff applied.",
+          "additionalProperties": true
+        },
+        "executed_at": { "type": "string", "format": "date-time" },
+        "status": { "enum": ["ok", "empty", "error"] },
+        "n_results": { "type": ["integer", "null"], "minimum": 0 },
+        "returned_record_ids": {
+          "type": "array",
+          "description": "Stable source IDs. When a call returns many records, log the ones actually used and set n_results to the full count.",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "error": { "type": ["string", "null"] },
+        "note": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "error" } }, "required": ["status"] },
+          "then": { "required": ["error"] }
+        },
+        {
+          "if": { "properties": { "status": { "const": "empty" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "returned_record_ids": { "maxItems": 0 },
+              "n_results": { "const": 0 }
+            }
+          }
+        }
+      ]
+    },
+
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "statement", "query_ids"],
+      "properties": {
+        "claim_id": { "$ref": "#/$defs/claimId" },
+        "statement": {
+          "type": "string",
+          "description": "One factual statement. Any number in it must appear in a cited query's results.",
+          "minLength": 1
+        },
+        "query_ids": {
+          "allOf": [{ "$ref": "#/$defs/queryIdList" }, { "minItems": 1 }],
+          "description": "Hard rule 1: at least one."
+        },
+        "record_ids": {
+          "type": "array",
+          "description": "Specific records backing the statement. Must appear in the cited queries' returned_record_ids.",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "liability_code": {
+          "type": ["string", "null"],
+          "description": "Code from liability_taxonomy.yaml, where the claim bears on one."
+        },
+        "evidence_type": {
+          "enum": [
+            "identity",
+            "expression",
+            "genetic_association",
+            "pathway_context",
+            "measured_activity",
+            "literature_report",
+            "label_text",
+            "adverse_event_report",
+            "other"
+          ]
+        },
+        "source_species": {
+          "type": ["string", "null"],
+          "description": "Species the underlying data came from, where the source reports it."
+        },
+        "quantities": {
+          "type": "array",
+          "description": "Numbers appearing in the statement, as returned by the source. Hard rule 3: never estimated, interpolated or unit-converted without showing the conversion.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value_as_reported", "record_id"],
+            "properties": {
+              "quantity": { "type": "string" },
+              "value_as_reported": { "type": "string" },
+              "units_as_reported": { "type": ["string", "null"] },
+              "record_id": { "type": "string" },
+              "conversion_shown": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "uncertainty": {
+          "type": ["string", "null"],
+          "description": "Conflicts between sources, assay caveats, or reliability flags the source published."
+        }
+      }
+    },
+
+    "liability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["liability_code", "status", "confidence", "claim_ids"],
+      "properties": {
+        "liability_code": {
+          "type": "string",
+          "description": "Validated against liability_taxonomy.yaml by run_eval.py."
+        },
+        "status": { "$ref": "#/$defs/status" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "mechanism_basis": {
+          "enum": ["on_target", "off_target", "class", "chemistry", "unknown", null]
+        },
+        "mechanism_hypothesis": {
+          "type": ["string", "null"],
+          "description": "How the proposed mechanism would produce the effect. A hypothesis, labelled as one."
+        },
+        "claim_ids": { "$ref": "#/$defs/claimIdList" },
+        "sources_searched": {
+          "type": "array",
+          "description": "Required for no_evidence_found, so the memo can say 'not detected in X, Y' rather than 'no risk'.",
+          "items": { "type": "string" }
+        },
+        "not_assessed_reason": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "signal" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "claim_ids": { "minItems": 1 },
+              "confidence": { "enum": ["high", "moderate", "low"] }
+            },
+            "required": ["mechanism_basis"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "evidence_against_risk" } },
+            "required": ["status"]
+          },
+          "then": {
+            "description": "Hard rule 2: must cite specific records.",
+            "properties": {
+              "claim_ids": { "minItems": 1 },
+              "confidence": { "enum": ["high", "moderate", "low"] }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "no_evidence_found" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "confidence": { "const": null },
+              "sources_searched": { "minItems": 1 }
+            },
+            "required": ["sources_searched"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "not_assessed" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": { "confidence": { "const": null } },
+            "required": ["not_assessed_reason"]
+          }
+        }
+      ]
+    },
+
+    "namPlanItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["liability_code", "assay", "tier", "decision_informed", "animal_study_trigger"],
+      "properties": {
+        "liability_code": { "type": "string" },
+        "assay": { "type": "string" },
+        "tier": {
+          "enum": ["in_silico", "biochemical", "cell_based", "complex_in_vitro"],
+          "description": "Plan items are ordered cheapest and most decision-relevant first."
+        },
+        "measures": { "type": ["string", "null"] },
+        "decision_informed": {
+          "type": "string",
+          "description": "What result would raise concern, and what would lower it."
+        },
+        "limits": {
+          "type": ["string", "null"],
+          "description": "What a negative result would NOT establish. Keeps hard rule 2 intact at the planning stage."
+        },
+        "animal_study_trigger": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["trigger"],
+          "properties": {
+            "trigger": {
+              "type": "string",
+              "description": "The result or regulatory need that would still call for in vivo work. A NAM-first plan reduces and sequences animal use; it does not claim to remove it."
+            },
+            "study": { "type": ["string", "null"] },
+            "guideline_ref_ids": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "guideline_ref_ids": {
+          "type": "array",
+          "description": "Keys into guideline_references.",
+          "items": { "type": "string" }
+        },
+        "method_specified": {
+          "type": "boolean",
+          "default": true,
+          "description": "False when references/nam_catalog.md has no entry for this liability. The plan then states the decision needed and says the method is not yet specified, rather than inventing one."
+        }
+      }
+    },
+
+    "guidelineRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref_id", "issuing_body", "verification"],
+      "properties": {
+        "ref_id": { "type": "string" },
+        "issuing_body": { "enum": ["ICH", "FDA", "EMA", "OECD", "other"] },
+        "designation": {
+          "type": ["string", "null"],
+          "description": "As the issuing body writes it. Null when the repo has no entry; the dossier then flags it as an open question rather than supplying one from memory."
+        },
+        "title": { "type": ["string", "null"] },
+        "source_url": {
+          "type": ["string", "null"],
+          "description": "The issuing body's own page. A secondary summary is not a citation."
+        },
+        "in_repo": {
+          "type": "boolean",
+          "description": "Whether references/guidelines.md has an entry for this reference."
+        },
+        "uncertainty_note": {
+          "type": ["string", "null"],
+          "description": "Say so when unsure a designation or section exists. Better than a confident wrong number."
+        },
+        "verification": {
+          "const": "needs_human_verification",
+          "description": "Hard rule 4. There is no other permitted value anywhere in this repo."
+        }
+      }
+    }
+  }
+}

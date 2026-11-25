@@ -1,0 +1,173 @@
+# Eval cases for nonclinical-safety-nam-dossier.
+#
+# Each case is one prompt given to the skill. Ground truth lives in
+# ground_truth/<case_id>.yaml and is verified by the repo owner against the current
+# FDA label, not by Claude.
+#
+# TODO (owner): confirm or replace every compound below.
+#
+# These are suggestions only, chosen because each is a long-approved small molecule
+# whose label is public and stable, so ground truth is checkable. Nothing is asserted
+# here about what any of them causes — that is exactly what you verify from the label.
+# Swap in compounds closer to your customers' chemistry if that demos better.
+#
+# Selection criteria worth preserving if you change the list:
+#   - approved, so there is a label to verify against
+#   - small molecule, since the skill declares biologics out of scope
+#   - a mix of liability domains, so recall isn't measured on one organ system
+#   - a mix of mechanism bases: on-target, off-target, and class
+#   - present in ChEMBL and PubChem, so Step 1 can resolve identity
+#
+# case_kind:
+#   positive          - expected to surface documented liabilities; scores recall
+#   negative_control  - expected NOT to surface particular liabilities; scores false
+#                       alarms. A negative control is not a "safe drug"; it is a
+#                       compound whose label does not carry the liabilities listed in
+#                       its ground truth's absent_liabilities.
+#   target_only       - no compound given; exercises the target-level path
+#   out_of_scope      - the skill should decline; exercises the scope guard
+
+version: 0.1.0
+
+defaults:
+  runs_per_case: 3
+  expect_outputs: [memo.md, dossier.json]
+
+cases:
+
+  # ---- positives -------------------------------------------------------------
+
+  - case_id: p01_thalidomide_mm
+    case_kind: positive
+    compound: thalidomide
+    indication: multiple myeloma
+    prompt: >-
+      Produce a NAM-first nonclinical safety assessment for thalidomide in multiple
+      myeloma.
+    rationale: >-
+      TODO (owner): confirm. Chosen as a case where the best-documented liability is
+      developmental and where species differences are part of the historical record,
+      so the memo's limitations section gets exercised.
+    notes: TODO (owner) — verify against current label before enabling.
+
+  - case_id: p02_amiodarone_af
+    case_kind: positive
+    compound: amiodarone
+    indication: atrial fibrillation
+    prompt: >-
+      Produce a NAM-first nonclinical safety assessment for amiodarone in atrial
+      fibrillation.
+    rationale: >-
+      TODO (owner): confirm. Chosen as a multi-organ case: a compound whose label
+      carries several distinct domains, which tests whether the skill enumerates more
+      than one liability rather than fixating on the first.
+    notes: TODO (owner) — verify against current label before enabling.
+
+  - case_id: p03_isotretinoin_acne
+    case_kind: positive
+    compound: isotretinoin
+    indication: severe recalcitrant nodular acne
+    prompt: >-
+      Produce a NAM-first nonclinical safety assessment for isotretinoin in severe
+      nodular acne.
+    rationale: >-
+      TODO (owner): confirm. Chosen as a case where the on-target mechanism and the
+      principal liability are tightly linked, so Step 2 should reach it from target
+      biology rather than only from the label.
+    notes: TODO (owner) — verify against current label before enabling.
+
+  - case_id: p04_troglitazone_t2d
+    case_kind: positive
+    compound: troglitazone
+    indication: type 2 diabetes
+    prompt: >-
+      Produce a NAM-first nonclinical safety assessment for troglitazone in type 2
+      diabetes.
+    rationale: >-
+      TODO (owner): confirm. Chosen as a withdrawn drug, which tests whether the
+      skill handles a compound whose current label does not exist and whose evidence
+      is literature-only. Ground truth here may need a different source than
+      DailyMed — note which you used.
+    notes: TODO (owner) — withdrawn; decide the ground-truth source before enabling.
+
+  # TODO (owner): consider adding two more positives covering liability domains the
+  # four above miss. Pick from the domains you defined in liability_taxonomy.yaml
+  # once that vocabulary is filled in, so recall is measured across the taxonomy
+  # rather than across whatever these four happen to cover.
+
+  # ---- negative controls -----------------------------------------------------
+  #
+  # For each of these, ground_truth lists absent_liabilities: the liability codes the
+  # label does NOT carry. A run that flags one of those as `signal` is a false alarm.
+  # Flags that are neither expected nor listed absent are reported for human review
+  # and not scored, since the eval cannot tell a hallucination from a real find the
+  # ground truth simply doesn't cover.
+
+  - case_id: n01_metformin_t2d
+    case_kind: negative_control
+    compound: metformin
+    indication: type 2 diabetes
+    prompt: >-
+      Produce a NAM-first nonclinical safety assessment for metformin in type 2
+      diabetes.
+    rationale: >-
+      TODO (owner): confirm, and decide which liability codes to list as absent.
+      Chosen as a long-marketed compound with an extensive label, which makes it a
+      test of precision rather than of silence.
+    notes: TODO (owner) — populate absent_liabilities from the label.
+
+  - case_id: n02_acetaminophen_pain
+    case_kind: negative_control
+    compound: acetaminophen
+    indication: mild to moderate pain
+    prompt: >-
+      Produce a NAM-first nonclinical safety assessment for acetaminophen in mild to
+      moderate pain.
+    rationale: >-
+      TODO (owner): confirm. Chosen because one liability domain is very prominent for
+      this compound while others are not, so it tests whether the skill stays
+      proportionate instead of flagging everything adjacent.
+    notes: TODO (owner) — populate absent_liabilities from the label.
+
+  - case_id: n03_levocetirizine_rhinitis
+    case_kind: negative_control
+    compound: levocetirizine
+    indication: allergic rhinitis
+    prompt: >-
+      Produce a NAM-first nonclinical safety assessment for levocetirizine in
+      allergic rhinitis.
+    rationale: >-
+      TODO (owner): confirm. Chosen as a second-generation agent in a class whose
+      earlier members carry a cardiac liability, which tests whether the skill
+      attributes a class signal to a member the label does not support. Hard rule in
+      Step 4: class evidence is a hypothesis about the compound, not a finding.
+    notes: TODO (owner) — populate absent_liabilities from the label.
+
+  # ---- target-only -----------------------------------------------------------
+
+  - case_id: t01_target_only
+    case_kind: target_only
+    target: TODO
+    indication: TODO
+    prompt: >-
+      TODO (owner): a target-plus-indication prompt with no compound named.
+    rationale: >-
+      Exercises the Step 1 target-only path and Step 2 on-target risk reasoning, where
+      there are no compound-specific activities to lean on. Scoring here is about
+      whether the skill reaches mechanism hypotheses with correct `low` confidence and
+      does not drift into compound claims.
+    notes: TODO (owner) — choose a target with good GTEx/HPA/Open Targets coverage.
+
+  # ---- scope guard -----------------------------------------------------------
+
+  - case_id: x01_out_of_scope_biologic
+    case_kind: out_of_scope
+    compound: TODO
+    indication: TODO
+    prompt: >-
+      TODO (owner): name a biologic, oligonucleotide, or cell or gene therapy.
+    rationale: >-
+      SKILL.md declares non-small-molecules out of scope. The expected behaviour is a
+      clear decline, not a degraded dossier. Scored as pass/fail on the decline, not
+      on recall.
+    notes: TODO (owner) — fill in, then set expect_decline in the ground truth.

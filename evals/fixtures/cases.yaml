@@ -1,0 +1,11 @@
+# FIXTURE cases, for smoke-testing run_eval.py only. Not real eval cases.
+# The compound does not exist and the data is synthetic. See fixtures/README.md.
+version: 0.1.0
+defaults:
+  runs_per_case: 3
+cases:
+  - case_id: fx01_synthetic_fixture
+    case_kind: positive
+    compound: FIXTURE-COMPOUND-000
+    indication: fixture indication
+    prompt: Fixture only; never sent to a model.
